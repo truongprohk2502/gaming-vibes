@@ -1,9 +1,70 @@
+import { useAuthContext } from "@/stores/authContext";
 import styles from "./Guides.module.css";
+import { useEffect, useState } from "react";
+
+interface IGuide {
+  title: string;
+  author: string;
+}
 
 export default function Guides() {
+  const { user, authReady, login } = useAuthContext();
+  const [guides, setGuides] = useState<IGuide[]>([]);
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    if (authReady) {
+      fetch(
+        "/.netlify/functions/guides",
+        user
+          ? {
+              headers: {
+                Authorization: "Bearer " + user.token?.access_token,
+              },
+            }
+          : {}
+      )
+        .then((res) => {
+          if (!res.ok) {
+            login();
+            throw Error("You must be logged in to view this content");
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setError("");
+          setGuides(data);
+        })
+        .catch((err) => {
+          setError(err.message);
+          setGuides([]);
+        });
+    }
+  }, [user, authReady]);
+
   return (
     <div className={styles.guides}>
-      <h2>All Guides</h2>
+      {!authReady && <div>Loading...</div>}
+
+      {error && (
+        <div className={styles.error}>
+          <p>{error}</p>
+        </div>
+      )}
+
+      {guides &&
+        guides.map((guide) => (
+          <div key={guide.title} className={styles.card}>
+            <h3>{guide.title}</h3>
+            <h4>written by {guide.author}</h4>
+            <p>
+              Lorem ipsum dolor sit amet consectetur, adipisicing elit. At
+              corrupti iste ab magnam dignissimos id maxime rerum quae minima.
+              Delectus maxime culpa est consequatur veritatis, perspiciatis cum
+              corrupti possimus quis?
+            </p>
+          </div>
+        ))}
     </div>
   );
 }

@@ -1,5 +1,6 @@
-import Navbar from "@/components/Navbar";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
+import { AuthContextProvider } from "@/stores/authContext";
 
 export const metadata = {
   title: "Create Next App",
@@ -14,10 +15,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div>
+        <AuthContextProvider>
           <Navbar />
           {children}
-        </div>
+        </AuthContextProvider>
       </body>
     </html>
   );
